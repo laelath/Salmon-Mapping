@@ -8,6 +8,7 @@
 	position: relative;
 	top: -3.5em;
 }
+
 #tstxt {
 	display: inline-block;
 	width: 5em;
@@ -26,28 +27,58 @@
 <script src="https://d3js.org/d3.v4.min.js"></script>
 <script>
 
-var svg = d3.select("#map"),
+var svg = d3.select("svg#map"),
 	width = +svg.attr("width"),
 	height = +svg.attr("height"),
 	radius = 5;
 
-var points = d3.range(5).map(function() {
+var points = d3.range(8).map(function() {
 	return {
 		x: Math.round(Math.random() * (width - radius * 2) + radius),
 		y: Math.round(Math.random() * (height - radius * 2) + radius)
 	};
 });
 
+var pathFunc = d3.line()
+	.x(function(d) { return d.x; })
+	.y(function(d) { return d.y; })
+	.curve(d3.curveCatmullRomClosed.alpha(0.5));
+
 var fish = [ points[0] ];
 
-var color = d3.rgb("#000000");
+var color = d3.rgb("red");
 
-svg.selectAll("circle")
+var path = svg.append("path")
+	.attr("d", pathFunc(points))
+	.attr("stroke", "black")
+	.attr("stroke-width", 1)
+	.attr("fill", "none");
+
+var marker = svg.selectAll("circle")
 	.data(fish)
 	.enter().append("circle")
 		.attr("cx", function(d) { return d.x; })
 		.attr("cy", function(d) { return d.y; })
 		.attr("r", radius)
-		.style("fill", color)
+		.style("fill", color);
+
+/*transition();
+
+function transition() {
+	marker.transition()
+		.duration(5000)
+		.attr("transform", translateAlong(path.node()))
+		.each("end", transition);
+}
+
+function translateAlong(path) {
+	var l = path.getTotalLength();
+	return function(i) {
+		return function(t) {
+			var p = path.getPointAtLength(t * l);
+			return "translate(" + p.x + "," + p.y + ")";
+		}
+	}
+}*/
 
 </script>
