@@ -1,29 +1,6 @@
 <!DOCTYPE html>
 <meta charset="utf-8">
-<style>
-
-#ts {
-	display: inline-block;
-	width: 40em;
-	position: relative;
-	top: -3.5em;
-}
-
-#tstxt {
-	display: inline-block;
-	width: 5em;
-	margin-right: .5em;
-	padding-top: 2em;
-	text-align: center;
-}
-
-</style>
-<div id="screen">
-	<svg id="map" width="960" height="500"></svg>
-</div>
-<div id="slider">
-	<label id="tstxt">Time Step <input id="ts" type="range"/></label>
-</div>
+<svg id="map" width="960" height="500"></svg>
 <script src="https://d3js.org/d3.v4.min.js"></script>
 <script>
 
@@ -32,43 +9,62 @@ var svg = d3.select("svg#map"),
 	height = +svg.attr("height"),
 	radius = 5;
 
-var points = d3.range(8).map(function() {
-	return {
-		x: Math.round(Math.random() * (width - radius * 2) + radius),
-		y: Math.round(Math.random() * (height - radius * 2) + radius)
-	};
-});
+var fish = [{ x: 0, y: 0 }];
+
+var points = genPoints(fish[0]);
 
 var pathFunc = d3.line()
 	.x(function(d) { return d.x; })
 	.y(function(d) { return d.y; })
-	.curve(d3.curveCatmullRomClosed.alpha(0.5));
+	.curve(d3.curveCatmullRom.alpha(0.5));
 
-var fish = [ points[0] ];
+var layer1 = svg.append("g");
+var layer2 = svg.append("g");
 
-var color = d3.rgb("red");
+var path = makePath(points);
 
-var path = svg.append("path")
-	.attr("d", pathFunc(points))
-	.attr("stroke", "black")
-	.attr("stroke-width", 1)
-	.attr("fill", "none");
-
-var marker = svg.selectAll("circle")
+var marker = layer2.selectAll("circle")
 	.data(fish)
 	.enter().append("circle")
 		.attr("cx", function(d) { return d.x; })
 		.attr("cy", function(d) { return d.y; })
 		.attr("r", radius)
-		.style("fill", color);
+		.style("fill", d3.rgb("red"));
 
-/*transition();
+transition();
 
 function transition() {
 	marker.transition()
 		.duration(5000)
-		.attr("transform", translateAlong(path.node()))
-		.each("end", transition);
+		.attrTween("transform", translateAlong(path.node()))
+		.ease(d3.easeLinear)
+		.on("end", startNew);
+}
+
+function genPoints(pt) {
+	var npts = d3.range(7).map(function() {
+		return {
+			x: Math.round(Math.random() * (width - radius * 2) + radius),
+			y: Math.round(Math.random() * (height - radius * 2) + radius)
+		};
+	});
+	npts.unshift(pt);
+	return npts;
+}
+
+function makePath(pts) {
+	return layer1.append("path")
+		.attr("d", pathFunc(pts))
+		.attr("stroke", "black")
+		.attr("stroke-width", 1)
+		.attr("fill", "none");
+}
+
+function startNew() {
+	points = genPoints(points[7]);
+	layer1.select("path").remove();
+	path = makePath(points);
+	transition();
 }
 
 function translateAlong(path) {
@@ -79,6 +75,6 @@ function translateAlong(path) {
 			return "translate(" + p.x + "," + p.y + ")";
 		}
 	}
-}*/
+}
 
 </script>

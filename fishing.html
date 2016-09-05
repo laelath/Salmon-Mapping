@@ -1,0 +1,136 @@
+<html>
+<head>
+    <title>Fish Anime Test</title>
+
+<meta charset="UTF-8">
+<script src="https://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+<script src="https://d3js.org/topojson.v1.min.js"></script>
+
+<style>	
+div.tooltip {   
+  position: absolute;           
+  text-align: left;                            
+  padding: 2px;             
+  font: 16px sans-serif;        
+  background: #ccc;   
+  border: 0px;      
+  border-radius: 8px;           
+  pointer-events: none;         
+}
+svg	{ overflow: hidden; }
+</style>
+</head>
+<body>
+<div id="mapdiv"></div>
+</body>
+<script src="fishgeodata.js"></script>
+<script>
+
+var projection;
+
+var tipdiv = d3.select("body").append("div")   
+    .attr("class", "tooltip")               
+    .style("opacity", 0);
+
+var buildMap = function(){
+	var width=800,height=600;
+	projection = d3.geo.mercator().scale(4000).center([-118,47]);
+	var path = d3.geo.path().projection(projection);
+	
+	mapdiv=d3.select("#mapdiv")  
+	.style("position","absolute")
+	.style("width",width).style("height",height)
+	.style("background-repeat","no-repeat")
+    .style("opacity", 1);
+	
+var mapsvg = mapdiv.append("svg")
+    .attr("width", width)
+    .attr("height", height)
+	.attr("id","map")
+
+map2 = mapsvg.append("g")
+    .attr("class", "states")
+	.attr("width", width)
+    .attr("height", height);	
+	
+map2.selectAll("path")
+           .data(states.features)
+           .enter()
+           .append("path")
+           .attr("d", path)
+		   .attr("class", "borders")
+		   .style("stroke","black").style("stroke-width",2)
+		   .style("fill","none");		   
+
+map1 = mapsvg.append("g")
+    .attr("class", "water")
+	.attr("width", width)
+    .attr("height", height);
+	
+	
+map1.selectAll("path")
+           .data(rivers.features)
+           .enter()
+           .append("path")
+           .attr("d", path)
+		   .style("fill","none").style("stroke","#0570b0").style("stroke-width",2)
+		   .attr("class", "rivers")
+		   .on("mouseover", function(d) {
+            tipdiv.transition()        
+                .duration(20)      
+                .style("opacity", 1);      
+            tipdiv.html(d.properties.Name)  
+                .style("left", (d3.event.pageX + 20) + "px")     
+                .style("top", (d3.event.pageY - 14) + "px");    
+            })                  
+			.on("mouseout", function(d) {       
+            tipdiv.transition()        
+                .duration(20)      
+                .style("opacity", 0);   
+			});
+		
+map4 = mapsvg.append("g")
+    .attr("class", "map")
+	.attr("width", width)
+    .attr("height", height);
+}
+
+buildMap();
+
+var onefish = Math.floor(Math.random()*fish.length);
+console.log(onefish);
+
+var data = fish[onefish].detections;
+
+d3.select("#map")
+		.selectAll("circle")
+		.data(data)
+		.enter()
+		.append("circle")
+		.attr("cx", function (d) { 
+			var lon = sites[d.obs_site].longitude;
+			var lat = sites[d.obs_site].latitude;
+			return projection([lon,lat])[0]; 
+		})
+		.attr("cy", function (d) {
+			var lon = sites[d.obs_site].longitude;
+			var lat = sites[d.obs_site].latitude;
+			return projection([lon,lat])[1]; 
+		})
+		.attr("r", "4px")
+		.attr("fill", "red")
+		   .on("mouseover", function(d) {
+            tipdiv.transition()        
+                .duration(20)      
+                .style("opacity", 1);      
+            tipdiv.html("<table><tr><th align='left'>Date</th><td align='left'>" + d.obs_date + "</td></tr><tr><th align='left'>Site</th><td align='left'>" + d.obs_site + "</td></tr></table>")  
+                .style("left", (d3.event.pageX + 20) + "px")     
+                .style("top", (d3.event.pageY - 14) + "px");    
+            })                  
+			.on("mouseout", function(d) {       
+            tipdiv.transition()        
+                .duration(20)      
+                .style("opacity", 0);   
+			});		
+</script>
+</html>
